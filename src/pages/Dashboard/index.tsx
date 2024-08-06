@@ -4,12 +4,16 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import Cardvalue from "../../components/Cardvalue";
+import ControlButton from "../../components/ControlButton";
 import { API_IOT_SOCKET_PATH, API_CORE_SOCKET } from "../../config";
 import { io } from "socket.io-client";
 
 const socket = io(API_CORE_SOCKET || "", {
   path: API_IOT_SOCKET_PATH,
   transports: ["websocket"],
+  extraHeaders: {
+    authorization: "Basic xxx",
+  },
 });
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -24,6 +28,8 @@ const device_id = "device_001";
 
 export default function BasicGrid() {
   const [count, setcount] = useState(1);
+  const [temp, settemp] = useState(0);
+  const [hum, sethum] = useState(0);
   useEffect(() => {
     // console.log('...SOCKET...', API_CORE_SOCKET, API_CORE_SOCKET_PATH);
     socket.on(`control`, (data: any) => {
@@ -32,16 +38,24 @@ export default function BasicGrid() {
 
     socket.on(device_id, (data: any) => {
       console.log("device_id ::: ", device_id, data);
-      setcount(prev => prev+1)
+      settemp(data.temp);
+      sethum(data.hum);
+      setcount((prev) => prev + 1);
+      // socket.emit("value", {
+      //   device_id: device_id,
+      //   value_a: count,
+      //   value_b: true,
+      //   timestamp: new Date(),
+      // });
     });
 
     socket.on("connect", () => {
       console.log("Connected to server:", socket.id);
     });
 
-    socket.on("disconnect", (reason) => {
+    socket.on("disconnect", (reason, x) => {
       console.log("Disconnected from server");
-      console.log("Reason:", reason);
+      console.log("Reason:", reason, x);
     });
 
     socket.on("error", (error) => {
@@ -66,20 +80,29 @@ export default function BasicGrid() {
       socket.off("control");
       socket.off("value");
       socket.off(device_id);
-      //   socket.off("value");
     };
   }, []);
 
-
   useEffect(() => {
-    // socket.emit("control", {
-    //   device_id: device_id,
-    //   value_a: count,
-    //   value_b: true,
-    //   timestamp: new Date(),
-    // });
-  }, [count])
-  
+    if (socket.id && count < 3) {
+      console.log("....Send", socket.id);
+      socket.emit("value", {
+        device_id: device_id,
+        led_a: "on",
+        timestamp: new Date(),
+      });
+    }
+  }, [count]);
+
+  const controlLed = (status: boolean) => {
+    console.log("control", status);
+    socket.emit("value", {
+      device_id: device_id,
+      led_a: status ? "on" : "off",
+      timestamp: new Date(),
+    });
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid
@@ -90,9 +113,9 @@ export default function BasicGrid() {
         <Grid item xl lg={3} md={4} sm xs={12}>
           <Cardvalue
             title="อุณหภูมิ"
-            value={25}
+            value={temp}
             unit="C"
-            icon="info.png"
+            icon="temparature.png"
             bgColor="#baddff"
             fontColor="red"
           />
@@ -100,15 +123,21 @@ export default function BasicGrid() {
         <Grid item lg={3} md={4} xs={12}>
           <Cardvalue
             title="ความสว่าง"
-            value={10}
-            unit="lumen"
-            icon="help.png"
+            value={hum}
+            unit="%"
+            icon="humidity.png"
             bgColor="#baffc0"
             fontColor="#490be8"
           />
         </Grid>
         <Grid item lg={3} md={4} xs={12}>
-          <Item>C</Item>
+          <ControlButton
+            openIcon="on.png"
+            closeIcon="off.png"
+            openStatus="LED เปิดอยู่"
+            closeStatus="LED ปิดอยู่"
+            handleChange={controlLed}
+          />
         </Grid>
         <Grid item lg={3} md={4} xs={12}>
           <Item>D</Item>

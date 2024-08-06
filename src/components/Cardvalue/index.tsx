@@ -11,11 +11,18 @@ type propsType = {
   fontColor?: string;
 };
 
-function index({ title, value, unit, icon, bgColor, fontColor='black' }: propsType) {
+function index({
+  title,
+  value,
+  unit,
+  icon,
+  bgColor,
+  fontColor = "black",
+}: propsType) {
   return (
     <Card sx={{ padding: 1, backgroundColor: bgColor }}>
       <Stack direction={"row"} spacing={2} justifyContent={"space-between"}>
-        <img src={`/icons/${icon}`} style={{ width: 60, height: "auto" }} />
+        <img src={`/icons/${icon}`} style={{ width: 60, height: 60 }} />
         <Stack direction={"column"} spacing={2} justifyContent={"end"}>
           <Typography variant="h6" color={fontColor}>
             {title}
