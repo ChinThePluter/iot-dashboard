@@ -138,8 +138,8 @@ export default function BasicGrid() {
                 // disabled={true}
                 allowAnyClick={true}
                 defaultPosition={{
-                  x: 0,
-                  y: 0,
+                  x: -219,
+                  y: 9,
                 }}
                 // position={{ x: 100, y: 100 }}
                 // position={null}
