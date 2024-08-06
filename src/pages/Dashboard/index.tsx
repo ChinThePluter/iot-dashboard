@@ -7,6 +7,9 @@ import Cardvalue from "../../components/Cardvalue";
 import ControlButton from "../../components/ControlButton";
 import { API_IOT_SOCKET_PATH, API_CORE_SOCKET } from "../../config";
 import { io } from "socket.io-client";
+import { Popover } from "antd";
+import Draggable from "react-draggable";
+import MapItem from "../../components/MapItem";
 
 const socket = io(API_CORE_SOCKET || "", {
   path: API_IOT_SOCKET_PATH,
@@ -106,10 +109,86 @@ export default function BasicGrid() {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid
-        sx={{ paddingTop: 4, paddingLeft: 2, paddingRight: 2 }}
+        sx={{
+          textAlign: "-webkit-center",
+          paddingTop: 4,
+          paddingLeft: 2,
+          paddingRight: 2,
+        }}
         container
         spacing={2}
       >
+        <Grid item xs={12}>
+          <div>
+            <div
+              className="container"
+              style={{
+                width: 500,
+                height: 500,
+                position: "relative",
+
+                backgroundSize: "cover",
+                backgroundImage: `url(/maps/map.jpg)`,
+              }}
+            >
+              <Draggable
+                key="test"
+                axis="both"
+                //handle=".handle"
+                // disabled={true}
+                allowAnyClick={true}
+                defaultPosition={{
+                  x: 0,
+                  y: 0,
+                }}
+                // position={{ x: 100, y: 100 }}
+                // position={null}
+                grid={[3, 3]}
+                scale={1}
+                // onStart={console.log(Draggable.handleStart)}
+                // onDrag={(e) => {
+                //   console.log(e);
+                // }}
+                onStop={(e, ui) => {
+                  console.log("DRAG x:", ui.x, " y:", ui.y);
+                }}
+                bounds="parent"
+              >
+                <img style={{ width: 50 }} src={"/icons/pin.png"} />
+              </Draggable>
+              <MapItem
+                x={153}
+                y={186}
+                icon="temparature.png"
+                content={
+                  <Cardvalue
+                    title="อุณหภูมิ"
+                    value={temp}
+                    unit="C"
+                    icon="temparature.png"
+                    bgColor="#baddff"
+                    fontColor="red"
+                  />
+                }
+              />
+              <MapItem
+                x={-132}
+                y={200}
+                icon="humidity.png"
+                content={
+                  <Cardvalue
+                    title="ความชื้น"
+                    value={hum}
+                    unit="%"
+                    icon="humidity.png"
+                    bgColor="#baffc0"
+                    fontColor="#490be8"
+                  />
+                }
+              />
+            </div>
+          </div>
+        </Grid>
         <Grid item xl lg={3} md={4} sm xs={12}>
           <Cardvalue
             title="อุณหภูมิ"
@@ -122,7 +201,7 @@ export default function BasicGrid() {
         </Grid>
         <Grid item lg={3} md={4} xs={12}>
           <Cardvalue
-            title="ความสว่าง"
+            title="ความชื้น"
             value={hum}
             unit="%"
             icon="humidity.png"
