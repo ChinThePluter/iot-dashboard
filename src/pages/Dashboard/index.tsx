@@ -10,6 +10,7 @@ import { io } from "socket.io-client";
 import { Popover } from "antd";
 import Draggable from "react-draggable";
 import MapItem from "../../components/MapItem";
+import DoorFrontIcon from "@mui/icons-material/DoorFront";
 
 const socket = io(API_CORE_SOCKET || "", {
   path: API_IOT_SOCKET_PATH,
@@ -33,6 +34,10 @@ export default function BasicGrid() {
   const [count, setcount] = useState(1);
   const [temp, settemp] = useState(0);
   const [hum, sethum] = useState(0);
+  const [door, setdoor] = useState(0);
+  const [light , setlight] = useState(0);
+  const [car , setcar] = useState(0);
+
   useEffect(() => {
     // console.log('...SOCKET...', API_CORE_SOCKET, API_CORE_SOCKET_PATH);
     socket.on(`control`, (data: any) => {
@@ -123,42 +128,17 @@ export default function BasicGrid() {
             <div
               className="container"
               style={{
-                width: 500,
-                height: 500,
+                width: "auto",
+                height: "100vh",
                 position: "relative",
-
+                backgroundRepeat: "no-repeat",
                 backgroundSize: "cover",
-                backgroundImage: `url(/maps/map.jpg)`,
+                backgroundImage: `url(/maps/farmmap.png)`,
               }}
             >
-              <Draggable
-                key="test"
-                axis="both"
-                //handle=".handle"
-                // disabled={true}
-                allowAnyClick={true}
-                defaultPosition={{
-                  x: -219,
-                  y: 9,
-                }}
-                // position={{ x: 100, y: 100 }}
-                // position={null}
-                grid={[3, 3]}
-                scale={1}
-                // onStart={console.log(Draggable.handleStart)}
-                // onDrag={(e) => {
-                //   console.log(e);
-                // }}
-                onStop={(e, ui) => {
-                  console.log("DRAG x:", ui.x, " y:", ui.y);
-                }}
-                bounds="parent"
-              >
-                <img style={{ width: 50 }} src={"/icons/pin.png"} />
-              </Draggable>
               <MapItem
-                x={153}
-                y={186}
+                x={-200}
+                y={200}
                 icon="temparature.png"
                 content={
                   <Cardvalue
@@ -172,8 +152,8 @@ export default function BasicGrid() {
                 }
               />
               <MapItem
-                x={-132}
-                y={200}
+                x={300}
+                y={320}
                 icon="humidity.png"
                 content={
                   <Cardvalue
@@ -184,12 +164,60 @@ export default function BasicGrid() {
                     bgColor="#baffc0"
                     fontColor="#490be8"
                   />
+                
+                }
+              />
+              <MapItem
+                x={200}
+                y={450}
+                icon="driver.png"
+                content={
+                  <Cardvalue
+                    title="ประตู"
+                    value={door}
+                    unit=""
+                    icon="driver.png"
+                    bgColor="#777777"
+                    fontColor="#000000"
+                  />
+                
+                }
+              />
+              <MapItem
+                x={-50}
+                y={350}
+                icon="car.png"
+                content={
+                  <Cardvalue
+                    title="โรงจอดรถ"
+                    value={car}
+                    unit="C"
+                    icon="car.png"
+                    bgColor="#baddff"
+                    fontColor="red"
+                  />
+                }
+              />
+              <MapItem
+                x={0}
+                y={100}
+                icon="on.png"
+                content={
+                  <Cardvalue
+                    title="โคมไฟ"
+                    value={light}
+                    unit="%"
+                    icon="on.png"
+                    bgColor="#baffc0"
+                    fontColor="#490be8"
+                  />
+                
                 }
               />
             </div>
           </div>
         </Grid>
-        <Grid item xl lg={3} md={4} sm xs={12}>
+        <Grid item xl lg={2} md={4} sm xs={12}>
           <Cardvalue
             title="อุณหภูมิ"
             value={temp}
@@ -199,7 +227,7 @@ export default function BasicGrid() {
             fontColor="red"
           />
         </Grid>
-        <Grid item lg={3} md={4} xs={12}>
+        <Grid item lg={2} md={4} xs={12}>
           <Cardvalue
             title="ความชื้น"
             value={hum}
@@ -209,23 +237,35 @@ export default function BasicGrid() {
             fontColor="#490be8"
           />
         </Grid>
-        <Grid item lg={3} md={4} xs={12}>
-          <ControlButton
-            openIcon="on.png"
-            closeIcon="off.png"
-            openStatus="LED เปิดอยู่"
-            closeStatus="LED ปิดอยู่"
-            handleChange={controlLed}
+        <Grid item lg={2} md={4} xs={12}>
+          <Cardvalue
+            title="ประตู"
+            value={door}
+            unit=""
+            icon="driver.png"
+            bgColor="#825d2e"
+            fontColor="#e3a35f"
           />
         </Grid>
-        <Grid item lg={3} md={4} xs={12}>
-          <Item>D</Item>
+        <Grid item lg={2} md={4} xs={12}>
+          <Cardvalue
+            title="โคมไฟ"
+            value={light}
+            unit=""
+            icon="on.png"
+            bgColor="#502b5e"
+            fontColor="#d161fa"
+          />
         </Grid>
-        <Grid item lg={3} md={4} xs={12}>
-          <Item>E</Item>
-        </Grid>
-        <Grid item lg={3} md={4} xs={12}>
-          <Item>F</Item>
+        <Grid item lg={2} md={4} xs={12}>
+          <Cardvalue
+            title="รถจอด"
+            value={car}
+            unit=""
+            icon="car.png"
+            bgColor="#017d16"
+            fontColor="#60e076"
+          />
         </Grid>
       </Grid>
     </Box>
