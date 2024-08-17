@@ -1,115 +1,70 @@
-import React, { useState, useEffect } from "react";
-import { styled } from "@mui/material/styles";
+import { useState , useEffect } from "react";
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import Cardvalue from "../../components/Cardvalue";
-import ControlButton from "../../components/ControlButton";
-import { API_IOT_SOCKET_PATH, API_CORE_SOCKET } from "../../config";
-import { io } from "socket.io-client";
-import { Popover } from "antd";
-import Draggable from "react-draggable";
 import MapItem from "../../components/MapItem";
-import DoorFrontIcon from "@mui/icons-material/DoorFront";
-
-const socket = io(API_CORE_SOCKET || "", {
-  path: API_IOT_SOCKET_PATH,
-  transports: ["websocket"],
-  extraHeaders: {
-    authorization: "Basic xxx",
-  },
-});
-
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: "center",
-  color: theme.palette.text.secondary,
-}));
-
-const device_id = "device_001";
+import mqtt from "mqtt";
 
 export default function BasicGrid() {
-  const [count, setcount] = useState(1);
-  const [temp, settemp] = useState(0);
-  const [hum, sethum] = useState(0);
-  const [door, setdoor] = useState(0);
-  const [light , setlight] = useState(0);
-  const [car , setcar] = useState(0);
-
+  const topicMqtt = "chinto-iot-555/#";
+  const topicSensorData = "chinto-iot-555/sensorData";
+  const [isConnected, setIsConnected] = useState(false);
+  const [client, setClient] = useState(null);
+  const [hum, sethum] = useState("");
+  const [temp, settemp] = useState("");
+  const [light, setlight] = useState("");
+  const [car, setcar] = useState("");
+  const [door, setdoor] = useState("");
+  
   useEffect(() => {
-    // console.log('...SOCKET...', API_CORE_SOCKET, API_CORE_SOCKET_PATH);
-    socket.on(`control`, (data: any) => {
-      console.log("post ::: ", data);
-    });
+    const connectClient = () => {
+      const mqttClient = mqtt.connect("ws://broker.emqx.io/mqtt", {
+        port: 8083,
+      });
 
-    socket.on(device_id, (data: any) => {
-      console.log("device_id ::: ", device_id, data);
-      settemp(data.temp);
-      sethum(data.hum);
-      setcount((prev) => prev + 1);
-      // socket.emit("value", {
-      //   device_id: device_id,
-      //   value_a: count,
-      //   value_b: true,
-      //   timestamp: new Date(),
-      // });
-    });
+      mqttClient.on("connect", () => {
+        setIsConnected(true);
+        mqttClient.subscribe(topicMqtt);
+      });
 
-    socket.on("connect", () => {
-      console.log("Connected to server:", socket.id);
-    });
+      mqttClient.on("message", (topic, message) => {
+        console.log(topic);
+        console.log(message.toString());
 
-    socket.on("disconnect", (reason, x) => {
-      console.log("Disconnected from server");
-      console.log("Reason:", reason, x);
-    });
+        if (topic === topicSensorData) {
+          const rawData = message.toString().split(",");
+          console.log(rawData);
+          sethum(rawData[0]);
+          settemp(rawData[1]);
+          setlight(rawData[2]);
+          setcar(rawData[3]);
+          setdoor(rawData[4]);
+        }
+      });
 
-    socket.on("error", (error) => {
-      console.log("Socket error:", error);
+      mqttClient.on("close", () => {
+        console.log("Connection lost, trying to reconnect...");
+        setIsConnected(false);
+        setTimeout(connectClient, 5000); // Try to reconnect after 5 seconds
+      });
 
-      // Check for specific error and log details
-      if (error.message && error.stack) {
-        console.log("Error message:", error.message);
-        console.log("Error stack:", error.stack);
-      }
+      mqttClient.on("offline", () => {
+        console.log("Client went offline, trying to reconnect...");
+        setIsConnected(false);
+        setTimeout(connectClient, 5000); // Try to reconnect after 5 seconds
+      });
 
-      // Log additional context or data if available
-    });
+      setClient(mqttClient);
+    };
 
-    // socket.emit("control", {
-    //   device_id: device_id,
-    //   value: count,
-    //   timestamp: new Date(),
-    // });
+    connectClient();
 
     return () => {
-      socket.off("control");
-      socket.off("value");
-      socket.off(device_id);
+      if (client) {
+        client.end();
+      }
     };
   }, []);
-
-  useEffect(() => {
-    if (socket.id && count < 3) {
-      console.log("....Send", socket.id);
-      socket.emit("value", {
-        device_id: device_id,
-        led_a: "on",
-        timestamp: new Date(),
-      });
-    }
-  }, [count]);
-
-  const controlLed = (status: boolean) => {
-    console.log("control", status);
-    socket.emit("value", {
-      device_id: device_id,
-      led_a: status ? "on" : "off",
-      timestamp: new Date(),
-    });
-  };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -164,7 +119,6 @@ export default function BasicGrid() {
                     bgColor="#baffc0"
                     fontColor="#490be8"
                   />
-                
                 }
               />
               <MapItem
@@ -180,7 +134,6 @@ export default function BasicGrid() {
                     bgColor="#777777"
                     fontColor="#000000"
                   />
-                
                 }
               />
               <MapItem
@@ -211,7 +164,6 @@ export default function BasicGrid() {
                     bgColor="#baffc0"
                     fontColor="#490be8"
                   />
-                
                 }
               />
             </div>
@@ -266,6 +218,11 @@ export default function BasicGrid() {
             bgColor="#017d16"
             fontColor="#60e076"
           />
+        </Grid>
+        <Grid item lg={2} md={4} xs={12}>
+          <div>
+          {!isConnected && <h2>Attempting to reconnect...</h2>}
+          </div>
         </Grid>
       </Grid>
     </Box>

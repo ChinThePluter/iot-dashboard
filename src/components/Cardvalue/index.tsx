@@ -4,7 +4,7 @@ import { Person2Rounded } from "@mui/icons-material";
 
 type propsType = {
   title: string;
-  value: number;
+  value: any;
   unit: string;
   icon: string;
   bgColor: string;
